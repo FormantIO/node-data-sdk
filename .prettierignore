@@ -1,0 +1,8 @@
+# Ignore artifacts
+build
+
+# Ignore MD files
+*.md
+
+# Ignore HTML
+*.html
