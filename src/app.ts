@@ -2,8 +2,8 @@ import express, { Express, Response as ExResponse, Request as ExRequest } from '
 import { createServer, Server as HttpServer } from 'http';
 import { FileLoader } from './utils/FileLoader';
 
-const INDEX_PATH = './src/public/index.html';
-const USER_SCRIPT = './src/public/user.js';
+const INDEX_PATH = './src/web/index.html';
+const USER_SCRIPT = './src/web/user.js';
 
 export class App {
   private readonly expressApp: Express;
