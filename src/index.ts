@@ -47,6 +47,7 @@ async function runBrowser() {
       } else if (line.includes('Device disconnected')) {
         handleConnectionStateChange(false);
       } else if (line.includes('Device connection failed')) {
+        console.error(line);
         handleConnectionFailure(page).catch((error) => {
           console.error(error);
           process.exit(1);
