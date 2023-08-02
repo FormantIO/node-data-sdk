@@ -12,6 +12,14 @@ const pingIntervalMs = parsedPingInterval || 1000;
 const reconnectTimeout = parseInt(process.env.RECONNECT_TIMEOUT_MS);
 const reconnectTimeoutMs = reconnectTimeout || 3000;
 
+const loginData = {
+  deviceId: process.env.DEVICE_ID,
+  username: process.env.USERNAME,
+  password: process.env.PASSWORD,
+  pingIntervalMs,
+  reconnectTimeoutMs
+};
+
 async function runServer() {
   const app = new App(express);
   const server = await app.getServer();
@@ -28,6 +36,15 @@ async function runBrowser() {
       const line = message.args()[i].toString();
       if (line.includes('PING')) {
         handlePing(parseInt(line.split('PING: ')[1]));
+      } else if (line.includes('Device connected')) {
+        handleConnectionStateChange(true);
+      } else if (line.includes('Device disconnected')) {
+        handleConnectionStateChange(false);
+      } else if (line.includes('Device connection failed')) {
+        handleConnectionFailure(page).catch((error) => {
+          console.error(error);
+          process.exit(1);
+        });
       } else if (line.includes('Device not found')) {
         console.error(line);
         process.exit(1);
@@ -37,21 +54,26 @@ async function runBrowser() {
     }
   });
 
-  const loginData = {
-    deviceId: process.env.DEVICE_ID,
-    username: process.env.USERNAME,
-    password: process.env.PASSWORD,
-    pingIntervalMs,
-    reconnectTimeoutMs
-  };
+  await connectToTeleopSession(page);
+}
 
+async function connectToTeleopSession(page: Page) {
   await page.evaluate((loginData) => {
     (window as any).connectTeleop(loginData);
   }, loginData);
 }
 
+async function handleConnectionFailure(page: Page) {
+  await page.reload();
+  await connectToTeleopSession(page);
+}
+
 function handlePing(ping: number) {
   console.log(`${ping}ms`);
+}
+
+function handleConnectionStateChange(connected: boolean) {
+  console.log(`Connected: ${connected}`);
 }
 
 runServer().then(() => {

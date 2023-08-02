@@ -1,5 +1,7 @@
 const { Authentication, Fleet } = window.FormantDataSDK;
 
+let reconnectTimeout = null;
+
 async function connectTeleop(data) {
   const { deviceId, username, password, pingIntervalMs, reconnectTimeoutMs } = data;
 
@@ -7,7 +9,6 @@ async function connectTeleop(data) {
   const devices = await Fleet.getDevices();
 
   let connected = false;
-  let reconnecting = false;
 
   for (const device of devices) {
     if (device.name === deviceId) {
@@ -21,12 +22,13 @@ async function connectTeleop(data) {
       device.on('disconnect', () => {
         connected = false;
         console.log('Device disconnected');
-        setTimeout(() => {
-          connectTeleop(data);
-        }, reconnectTimeoutMs);
+        scheduleReconnect(data);
       });
 
-      device.startRealtimeConnection();
+      device.startRealtimeConnection().catch((error) => {
+        console.error('Device connection failed', error);
+        scheduleReconnect(data);
+      });
 
       setInterval(() => {
         if (!connected) {
@@ -44,6 +46,18 @@ async function connectTeleop(data) {
   }
 
   console.log('Device not found');
+}
+
+function scheduleReconnect(data) {
+  if (reconnectTimeout) {
+    clearTimeout(reconnectTimeout);
+    reconnectTimeout = null;
+  }
+
+  reconnectTimeout = setTimeout(() => {
+    reconnectTimeout = null;
+    connectTeleop(data);
+  }, data.reconnectTimeoutMs);
 }
 
 window.connectTeleop = connectTeleop;
