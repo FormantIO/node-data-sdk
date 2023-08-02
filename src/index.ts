@@ -1,13 +1,18 @@
 import express from 'express';
 import { chromium, Browser, Page } from 'playwright';
 import { App } from './app';
+require('dotenv').config();
 
-const port = process.env.PORT || 8989;
+const parsedPort = parseInt(process.env.PORT);
+const port = parsedPort || 8989;
+
+const parsedPingInterval = parseInt(process.env.PING_INTERVAL_MS);
+const pingIntervalMs = parsedPingInterval || 1000;
 
 async function runServer() {
   const app = new App(express);
   const server = await app.getServer();
-  server.listen(port, () => console.log(`http listening at http://127.0.0.1:${port}`));
+  server.listen(port, () => console.log(`http server listening at http://127.0.0.1:${port}`));
 }
 
 async function runBrowser() {
@@ -20,16 +25,19 @@ async function runBrowser() {
       const line = message.args()[i].toString();
       if (line.includes('PING')) {
         handlePing(line.split('PING: ')[1]);
+      } else if (line.includes('Device not found')) {
+        process.exit(1);
       } else {
-        // console.log(`Console: ${line}`);
+        console.info(line);
       }
     }
   });
 
   const loginData = {
-    deviceId: 'ericpi',
-    username: 'USERNAME',
-    password: 'PASSWORD'
+    deviceId: process.env.DEVICE_ID,
+    username: process.env.USERNAME,
+    password: process.env.PASSWORD,
+    pingIntervalMs
   };
 
   await page.evaluate((loginData) => {

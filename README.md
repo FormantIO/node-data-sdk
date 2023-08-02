@@ -1,6 +1,6 @@
 # node-data-sdk
 
-1. Set loginData in index.ts
+1. Copy .env.example to .env and set appropriate values
 2. npm start
 3. Watch for ping in console
 

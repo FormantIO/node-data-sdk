@@ -30,7 +30,6 @@ export class App {
   }
 
   private async loadApp(): Promise<void> {
-    // preload index so that it is in RAM for every request
     let indexHTML = await FileLoader.readFile(INDEX_PATH);
     const userScript = await FileLoader.readFile(USER_SCRIPT);
 
