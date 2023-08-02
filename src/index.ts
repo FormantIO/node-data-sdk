@@ -9,6 +9,9 @@ const port = parsedPort || 8989;
 const parsedPingInterval = parseInt(process.env.PING_INTERVAL_MS);
 const pingIntervalMs = parsedPingInterval || 1000;
 
+const reconnectTimeout = parseInt(process.env.RECONNECT_TIMEOUT_MS);
+const reconnectTimeoutMs = reconnectTimeout || 3000;
+
 async function runServer() {
   const app = new App(express);
   const server = await app.getServer();
@@ -24,7 +27,7 @@ async function runBrowser() {
     for (let i = 0; i < message.args().length; ++i) {
       const line = message.args()[i].toString();
       if (line.includes('PING')) {
-        handlePing(line.split('PING: ')[1]);
+        handlePing(parseInt(line.split('PING: ')[1]));
       } else if (line.includes('Device not found')) {
         console.error(line);
         process.exit(1);
@@ -38,12 +41,17 @@ async function runBrowser() {
     deviceId: process.env.DEVICE_ID,
     username: process.env.USERNAME,
     password: process.env.PASSWORD,
-    pingIntervalMs
+    pingIntervalMs,
+    reconnectTimeoutMs
   };
 
   await page.evaluate((loginData) => {
     (window as any).connectTeleop(loginData);
   }, loginData);
+}
+
+function handlePing(ping: number) {
+  console.log(`${ping}ms`);
 }
 
 runServer().then(() => {
@@ -52,7 +60,3 @@ runServer().then(() => {
     process.exit(1);
   });
 });
-
-function handlePing(ping: string) {
-  console.log(`${parseInt(ping)}ms`);
-}
