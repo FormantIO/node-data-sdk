@@ -36,6 +36,12 @@ async function runBrowser() {
       const line = message.args()[i].toString();
       if (line.includes('PING')) {
         handlePing(parseInt(line.split('PING: ')[1]));
+      } else if (
+        line.includes('Could not fetch devices') ||
+        line.includes('Could not authenticate')
+      ) {
+        console.error(line);
+        process.exit(1);
       } else if (line.includes('Device connected')) {
         handleConnectionStateChange(true);
       } else if (line.includes('Device disconnected')) {
