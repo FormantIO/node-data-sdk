@@ -26,6 +26,7 @@ async function runBrowser() {
       if (line.includes('PING')) {
         handlePing(line.split('PING: ')[1]);
       } else if (line.includes('Device not found')) {
+        console.error(line);
         process.exit(1);
       } else {
         console.info(line);
